@@ -1,0 +1,92 @@
+buildscript {
+  repositories {
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
+  }
+  dependencies {
+    classpath "org.ajoberstar:grgit:2.1.0"
+  }
+}
+
+
+allprojects {
+    apply plugin: 'java'
+    apply plugin: "org.ajoberstar.grgit"
+       
+    dependencies {
+    	testCompile 'junit:junit:4.11'
+	}  
+	repositories {
+		mavenCentral()
+	}
+    
+    sourceSets {
+        main.java.srcDir 'src/main/java' 
+        main.resources.srcDir 'src/main/resources' 
+        
+        debug.java.srcDir 'src/main/java' 
+        debug.resources.srcDir 'src/main/resources' 
+    }
+
+   task dist(type: Copy, dependsOn:'copyjars') {
+       	// copy the config files
+    	from './config'
+    	include '**/*.xml'
+    	into '../build/config'
+    	
+    	doLast { task ->
+            println "Successfully copied config for project: [$task.project.name]"
+        }
+   }   
+
+	task copyjars(type: Copy, dependsOn:assemble) {
+	
+	   // Copy the libs
+    	from './build/libs'
+    	include '**/*.jar'
+    	into '../build/libs/release'
+
+    	
+    	doLast { task ->
+            println "Successfully copied Jar for project: [$task.project.name]"
+            
+        }
+	}
+}
+
+
+project(':lib').dist {
+    	from './'
+    	include '**/*.jar'
+    	into '../build/libs/shared'
+
+    doLast {
+        println "- Done copying the dependencies."
+    }
+}
+
+project(':lib'){
+	dependencies {
+   	 compile fileTree(dir: './', include: ['*.jar'])
+	}
+	sourceSets {
+        main.java.srcDir './' 
+    }
+}
+
+project(':app').dependencies {
+    compile 'log4j:log4j:1.2.17'
+    compile project(':core')
+}
+
+project(':common'){
+	dependencies {
+    	compile 'log4j:log4j:1.2.17'
+    	compile project(':lib')
+	}
+	sourceSets {
+        main.java.srcDir 'src' 
+        main.resources.srcDir 'config' 
+    }
+}

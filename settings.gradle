@@ -1,0 +1,31 @@
+import org.ajoberstar.grgit.Grgit
+import org.ajoberstar.grgit.Credentials
+
+def String[] projectList = projectNamesList.split(',')
+
+buildscript {
+  repositories {
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
+  }
+  dependencies {
+    classpath "org.ajoberstar:grgit:2.1.0"
+  }
+}
+
+projectList.each { projName ->
+    println "deleting dir :[${projName}]"
+    delete projName;
+};
+
+
+ def core = Grgit.clone(dir: './core', uri: coreURL, refToCheckout: coreTag, credentials: new Credentials(gitUsername, gitPassword))
+ def app = Grgit.clone(dir: './app', uri: appURL, refToCheckout: appTag, credentials: new Credentials(gitUsername, gitPassword))
+
+
+// defines the repository names here that are used in the build.
+include 'app', 'core', 'lib', 'common'
+
+
+
